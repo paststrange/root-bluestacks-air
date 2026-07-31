@@ -1,0 +1,14 @@
+# initrd 镜像是 BlueStacks 版本特定的产物：
+#   - initrd_original.img  每次 repatch.sh 会从当前 App 重新提取
+#   - initrd_patched.img   每次 repatch.sh 重新生成
+# 入库只会在每次 BlueStacks 更新时制造无意义的二进制 diff。
+# 它们仍保留在工作目录中作为回滚用备份，只是不纳入版本控制。
+initrd_original.img
+initrd_patched.img
+
+# 打补丁过程中的临时目录
+build/
+initrd/
+
+# macOS
+.DS_Store
