@@ -19,7 +19,16 @@ trap 'rm -rf "$WORK"' EXIT
 die() { echo "❌ $*" >&2; exit 1; }
 
 [ -f "$IMG" ] || die "找不到 $IMG"
-pgrep -x BlueStacks >/dev/null && die "BlueStacks 仍在运行，请先完全退出"
+
+# 进程名用子串匹配。实测 multi-instance manager 的进程名是
+# "BlueStacks Air multi-instance manager"，精确匹配（-x BlueStacks）根本命中不了，
+# 会让这道检查静默通过 —— 而带着运行中的 BlueStacks 改 initrd 正是本脚本最该拦的事。
+# 注意不要加 -f：那会匹配完整命令行，而本仓库路径自身含 "bluestacks"，
+# 脚本会匹配到自己，从而永远无法运行。
+if RUNNING=$(pgrep -il bluestacks); then
+  die "BlueStacks 仍在运行，请先完全退出（含 multi-instance manager）：
+$(echo "$RUNNING" | sed 's/^/      /')"
+fi
 
 VER=$(defaults read /Applications/BlueStacks.app/Contents/Info.plist CFBundleVersion 2>/dev/null || echo "未知")
 echo "[*] BlueStacks 版本: $VER"

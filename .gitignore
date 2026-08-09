@@ -10,5 +10,9 @@ initrd_patched.img
 build/
 initrd/
 
+# 辅助 APK，来源与在流程中的角色尚未记录，暂不入库。
+# 若日后入库，应比照 kitsune.apk 在 README 中补上来源与 SHA256。
+activitylauncher.apk
+
 # macOS
 .DS_Store

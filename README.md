@@ -119,12 +119,24 @@ adb shell '/data/local/tmp/magisk64 --auto-selinux --setup-sbin /boot/magisk /sb
 
 ## 回滚
 
+`repatch.sh` 每次打补丁前，都会把当前（未打补丁的）镜像另存为本目录的 `initrd_original.img`：
+
 ```bash
-sudo cp /Applications/BlueStacks.app/Contents/img/initrd_hvf.img.bak \
-        /Applications/BlueStacks.app/Contents/img/initrd_hvf.img
-# 或用本目录的纯净备份
 sudo cp initrd_original.img /Applications/BlueStacks.app/Contents/img/initrd_hvf.img
 ```
+
+> ⚠️ **刚 clone 完仓库的机器上没有任何备份。** `initrd_original.img` 是 `repatch.sh` 运行时才生成的产物，且被 gitignore（见「文件」一节）。`repatch.sh` **不会**在 `/Applications` 下创建 `.bak`。所以第一次打补丁前，请自己留一份：
+>
+> ```bash
+> sudo cp /Applications/BlueStacks.app/Contents/img/initrd_hvf.img{,.bak}
+> ```
+>
+> 之后即可用它回滚：
+>
+> ```bash
+> sudo cp /Applications/BlueStacks.app/Contents/img/initrd_hvf.img.bak \
+>         /Applications/BlueStacks.app/Contents/img/initrd_hvf.img
+> ```
 
 ---
 
