@@ -11,7 +11,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 常用命令
 
 ```bash
-# 打补丁（前提：BlueStacks 完全退出，含 multi-instance manager）
+# 一键：打补丁 → 刷新 .bak → 部署 → 启动并验证 su（前提：BlueStacks 完全退出）
+./update.sh                                  # 实例端口不同时：ADB_SERIAL=127.0.0.1:xxxx ./update.sh
+
+# 仅打补丁（前提：BlueStacks 完全退出，含 multi-instance manager）
 ./repatch.sh
 # 脚本只生成 initrd_patched.img，不会自行部署；末尾会打印需手动执行的 sudo 命令：
 sudo cp initrd_patched.img /Applications/BlueStacks.app/Contents/img/initrd_hvf.img
@@ -41,6 +44,8 @@ grep -i magisk "/Users/Shared/Library/Application Support/BlueStacks/Logs/Player
 关键判据：`magisk64 --auto-selinux --setup-sbin` 那行退出码必须为 **0**；为 1 则 `/sbin/magisk` 不会被创建，后续全部失败。
 
 ## 架构
+
+`update.sh` 是 `repatch.sh` 的外层包装，只负责部署与验证；所有前置校验都留在 `repatch.sh` 里，不要挪到包装层。
 
 注入链路（`repatch.sh` → initrd 内部 → Android init）：
 

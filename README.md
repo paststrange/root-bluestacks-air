@@ -10,6 +10,17 @@ BlueStacks Air 官方不提供 root：`bst.feature.rooting` 由服务端下发�
 
 ## 快速使用
 
+**BlueStacks 更新后一键恢复 root：**
+
+```bash
+# 完全退出 BlueStacks（含 multi-instance manager）后：
+./update.sh
+```
+
+它依次完成：调用 `repatch.sh` 生成补丁 → 用新版纯净镜像刷新 `initrd_hvf.img.bak` → 部署补丁 → 启动 BlueStacks、等待开机 → `su -c id` 验证。中途只需输入一次 sudo 密码。若当前 initrd 已打过补丁，会跳过前三步直接验证。实例端口不是 `127.0.0.1:5565` 时，用 `ADB_SERIAL=127.0.0.1:xxxx ./update.sh`。
+
+**分步手动执行：**
+
 ```bash
 # 1. 完全退出 BlueStacks（含 multi-instance manager）
 # 2. 生成补丁
@@ -26,7 +37,7 @@ adb connect 127.0.0.1:5565
 adb -s 127.0.0.1:5565 shell 'su -c id'   # 期望 uid=0(root)
 ```
 
-**BlueStacks 每次更新都会覆盖 initrd，root 失效，重跑 `repatch.sh` 即可。**
+**BlueStacks 每次更新都会覆盖 initrd，root 失效，运行 `./update.sh` 即可。**
 
 ---
 
@@ -154,7 +165,8 @@ sudo cp initrd_original.img /Applications/BlueStacks.app/Contents/img/initrd_hvf
 
 | 文件 | 说明 |
 |---|---|
-| `repatch.sh` | 重新打补丁脚本，含多重前置校验 |
+| `update.sh` | 一键流程：调用 `repatch.sh` → 刷新 `.bak` → 部署 → 启动并验证 root |
+| `repatch.sh` | 重新打补丁脚本，含多重前置校验；只生成镜像，不部署 |
 | `initrd_original.img` | 纯净原始镜像，SHA256 `393f386e…87329e`（BlueStacks 5.21.790.7505） |
 | `initrd_patched.img` | 已打补丁镜像，SHA256 `30225609…9d03cc`（BlueStacks 5.21.790.7505） |
 | `magisk-bin/` | Kitsune 的 `magisk64` / `magiskinit` / `magiskpolicy` / `stub.apk` |
