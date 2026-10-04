@@ -150,6 +150,29 @@ sudo cp initrd_original.img /Applications/BlueStacks.app/Contents/img/initrd_hvf
 >         /Applications/BlueStacks.app/Contents/img/initrd_hvf.img
 > ```
 
+### 降级 BlueStacks
+
+新版 BlueStacks 有兼容问题时（如上文 790 的视频变灰），可以降回旧版，实例数据保留。以下步骤 2026-10-04 实测从 790.7505 降到 782.7501：
+
+1. **获取旧版安装包**：官网只提供最新版。旧版的官方地址和 SHA256 可以在 homebrew-cask 的 [`Casks/b/bluestacks.rb` 提交历史](https://github.com/Homebrew/homebrew-cask/commits/HEAD/Casks/b/bluestacks.rb)里找到，地址格式为 `https://ak-build.bluestacks.com/public/app-player/mac/nxt_mac2/<版本>/<哈希>/BlueStacksInstaller_<版本>.pkg`。下载后用 `shasum -a 256` 核对，再用 `pkgutil --check-signature` 确认是 now.gg 的签名且经过公证。
+2. **完全退出 BlueStacks**，含 multi-instance manager。
+3. **备份**：在 APFS 上用写时复制克隆，瞬间完成，也不额外占空间：
+   ```bash
+   B="/Users/Shared/Library/Application Support/BlueStacks"
+   cp -c  "$B/bluestacks.conf" "$B/bluestacks.conf.bak.<日期>"
+   cp -cR "$B/Engine"          "$B/Engine.bak.<日期>"
+   ```
+4. **绕过降级拦截**：安装程序判断已装版本时读的是 `bluestacks.conf` 里的 `bst.version`，遇到相同或更高的版本会报 `Same or higher version already installed` 并退出。把它改成比目标版本略低的值，安装程序就会走「升级」流程，保留实例数据；装完后它会自动写回正确的版本号：
+   ```bash
+   sed -i '' 's/^bst\.version=".*"$/bst.version="5.21.782.7500"/' "$B/bluestacks.conf"
+   ```
+5. **安装**：`sudo installer -pkg BlueStacksInstaller_<版本>.pkg -target /`。安装完成后会自动启动 BlueStacks，需要先把它完全退出。
+6. **重新打补丁**：降级会把 initrd 换回旧版的原版镜像，root 会丢失，需要重跑 `./update.sh`。
+
+> 降级前先确认实例的 data 分区没被新版用 casefold 格式化过：实例的 `qvirt.log` 里出现 `Skipping casefold format to preserve data`，说明数据分区未被改动，旧版可以直接读取。
+>
+> 用 Homebrew 安装的话，降级后 Homebrew 仍记录着新版本号。等 BlueStacks 发布比它更新的版本时，不带参数的 `brew upgrade` 会自动把 BlueStacks 升上去，所以要么用 `brew upgrade --formula`，要么升级前先确认兼容性。
+
 ---
 
 ## 注意事项
@@ -167,13 +190,14 @@ sudo cp initrd_original.img /Applications/BlueStacks.app/Contents/img/initrd_hvf
 |---|---|
 | `update.sh` | 一键流程：调用 `repatch.sh` → 刷新 `.bak` → 部署 → 启动并验证 root |
 | `repatch.sh` | 重新打补丁脚本，含多重前置校验；只生成镜像，不部署 |
-| `initrd_original.img` | 纯净原始镜像，SHA256 `393f386e…87329e`（BlueStacks 5.21.790.7505） |
-| `initrd_patched.img` | 已打补丁镜像，SHA256 `30225609…9d03cc`（BlueStacks 5.21.790.7505） |
+| `initrd_original.img` | 纯净原始镜像，SHA256 `d489725a…45326b`（BlueStacks 5.21.782.7501） |
+| `initrd_patched.img` | 已打补丁镜像，SHA256 `b76eb0b1…a6ff97`（BlueStacks 5.21.782.7501） |
 | `magisk-bin/` | Kitsune 的 `magisk64` / `magiskinit` / `magiskpolicy` / `stub.apk` |
 | `magisk.rc` | Magisk 的 init 服务定义 |
 | `kitsune.apk` | Kitsune Mask 管理器，需装进实例 |
 
 已验证环境（均为 Android 13 (API 33)，arm64-v8a，Kitsune 31.0）：
 
-- BlueStacks Air **5.21.782.7501**（首次验证）
+- BlueStacks Air **5.21.782.7501**（首次验证；**当前使用版本**，2026-10-04 从 790 降级回来，见「降级 BlueStacks」）
 - BlueStacks Air **5.21.790.7505**（2026-10-04；`stage2.sh` 未变，脚本零改动通过。新版仅在 `bstsetup.env` 中为 data 分区加入 casefold，已有数据的实例不会被重格式化）
+  - ⚠️ **已知问题，与 root 无关**：Unity 游戏内视频只有声音、画面全灰。实测 DNF 手游（`com.tencent.tmgp.dnf` 129.5.10.0，Unity 2022.3.74f1）开屏动画复现，降回 782 后恢复。视频解码本身正常，是 790 的 GLES 模拟层拒绝了 Unity 绑定视频纹理的调用，每次播放 logcat 都会出现 `GL2Encoder.cpp:s_glBindTexture … GL error 0x502`。Unity 拿不到画面，就用默认灰色纹理顶替。该游戏包未打包 Vulkan 后端，无法用 `-force-vulkan` 绕过
