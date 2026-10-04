@@ -35,7 +35,7 @@ echo "[*] BlueStacks 版本: $VER"
 
 # 检查当前 initrd 是否已经打过补丁
 if cpio -itv < "$IMG" 2>/dev/null | grep -q "boot/magisk"; then
-  die "当前 initrd 已含 Magisk，无需重复打补丁。如需从头再来，先用 .bak 还原。"
+  die "当前 initrd 已含 Magisk，无需重复打补丁。如需从头再来，先用 initrd_original.img（或自备的 .bak）还原。"
 fi
 
 echo "[*] 备份当前（未打补丁的）initrd"

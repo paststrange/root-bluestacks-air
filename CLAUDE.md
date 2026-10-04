@@ -65,4 +65,4 @@ grep -i magisk "/Users/Shared/Library/Application Support/BlueStacks/Logs/Player
 - `repatch.sh` 会用当前 App 里的镜像**覆盖** `initrd_original.img`，所以脚本靠"已打过补丁"检测来防止把已污染的镜像存成"原始"备份。
 - **补丁是 App 级而非实例级**，对所有实例生效。有完整性检测的应用建议配 Magisk DenyList。
 - 修改 App Bundle 内部会破坏代码签名；BlueStacks 每次更新覆盖 initrd 后需重跑 `repatch.sh`。
-- 首次验证环境：BlueStacks Air 5.21.782.7501 / Android 13 (API 33) / arm64-v8a。改动涉及版本敏感行为时，在提交信息或 README 中记下实测版本。
+- 已验证环境：BlueStacks Air 5.21.782.7501、5.21.790.7505 / Android 13 (API 33) / arm64-v8a。升级时 initrd 与 `kernel_hvf` 配套更新，旧版 `.bak` 不能用于新版回滚。改动涉及版本敏感行为时，在提交信息或 README 中记下实测版本。

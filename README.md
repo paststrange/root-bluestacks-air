@@ -16,6 +16,7 @@ BlueStacks Air 官方不提供 root：`bst.feature.rooting` 由服务端下发�
 ./repatch.sh
 # 3. 按脚本末尾提示执行 sudo cp
 # 4. 启动实例 → 打开 Kitsune Mask → 「修复运行环境」→ 自动重启
+#    （升级 BlueStacks 后重打补丁时，data 分区保留了 /data/adb/magisk，通常不会再弹此提示，直接 su 即可）
 ```
 
 验证：
@@ -145,7 +146,7 @@ sudo cp initrd_original.img /Applications/BlueStacks.app/Contents/img/initrd_hvf
 - **initrd 是 App 级而非实例级** —— 补丁对**所有实例**生效。跑银行类或有完整性检测的应用的实例，建议配置 Magisk DenyList。
 - **Play Integrity / SafetyNet** 更易被检测到。
 - 修改 App Bundle 内部会破坏代码签名。
-- BlueStacks 更新后需重新打补丁。
+- BlueStacks 更新后需重新打补丁。更新会连带替换 `kernel_hvf` 与 initrd 内的 `.ko` 模块，旧版 initrd 与新内核不配套 —— **部署新补丁前先用新版纯净镜像刷新 `.bak`**（`sudo cp …/initrd_hvf.img{,.bak}`），否则 `.bak` 回滚会装上旧模块。
 
 ---
 
@@ -154,10 +155,13 @@ sudo cp initrd_original.img /Applications/BlueStacks.app/Contents/img/initrd_hvf
 | 文件 | 说明 |
 |---|---|
 | `repatch.sh` | 重新打补丁脚本，含多重前置校验 |
-| `initrd_original.img` | 纯净原始镜像，SHA256 `d489725a…45326b`（BlueStacks 5.21.782.7501） |
-| `initrd_patched.img` | 已打补丁镜像，SHA256 `ea100cf5…41c6a22` |
+| `initrd_original.img` | 纯净原始镜像，SHA256 `393f386e…87329e`（BlueStacks 5.21.790.7505） |
+| `initrd_patched.img` | 已打补丁镜像，SHA256 `30225609…9d03cc`（BlueStacks 5.21.790.7505） |
 | `magisk-bin/` | Kitsune 的 `magisk64` / `magiskinit` / `magiskpolicy` / `stub.apk` |
 | `magisk.rc` | Magisk 的 init 服务定义 |
 | `kitsune.apk` | Kitsune Mask 管理器，需装进实例 |
 
-首次验证环境：BlueStacks Air **5.21.782.7501**，Android 13 (API 33)，arm64-v8a。
+已验证环境（均为 Android 13 (API 33)，arm64-v8a，Kitsune 31.0）：
+
+- BlueStacks Air **5.21.782.7501**（首次验证）
+- BlueStacks Air **5.21.790.7505**（2026-10-04；`stage2.sh` 未变，脚本零改动通过。新版仅在 `bstsetup.env` 中为 data 分区加入 casefold，已有数据的实例不会被重格式化）
